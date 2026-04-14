@@ -231,13 +231,18 @@ async function main(): Promise<void> {
   );
   updateCount.run();
 
-  db.pragma("journal_mode = WAL");
+  // Vacuum the DB and leave it in DELETE journal mode so there are no
+  // -shm/-wal sidecar files. This matches the golden standard Gate 5
+  // requirement (PRAGMA journal_mode -> "delete") for committed databases.
   db.pragma("vacuum");
+  db.pragma("journal_mode = DELETE");
+  db.close();
 
   console.log(`
 Build complete:
   Frameworks  : ${FRAMEWORKS.length} inserted
   Controls    : ${controlsInserted} inserted (all availability='paid')
+  Journal mode: DELETE (committed-database mode)
 
 Database: ${DB_PATH}`);
 }

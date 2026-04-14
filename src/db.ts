@@ -164,7 +164,10 @@ export function getDb(): Database.Database {
   }
 
   _db = new Database(DB_PATH);
-  _db.pragma("journal_mode = WAL");
+  // Use DELETE journal mode at runtime so the committed catalog database
+  // never grows -shm/-wal sidecar files on disk and stays consistent
+  // with the Gate 5 invariant set by scripts/build-db.ts.
+  _db.pragma("journal_mode = DELETE");
   _db.pragma("foreign_keys = ON");
   _db.exec(SCHEMA_SQL);
 

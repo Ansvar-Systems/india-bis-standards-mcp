@@ -53,4 +53,18 @@ describe("BIS catalog database", () => {
     const offenders = readdirSync(rawDir).filter((f) => /\.pdf$/i.test(f));
     expect(offenders).toEqual([]);
   });
+
+  it("committed database uses journal_mode=delete (no -shm/-wal sidecars)", () => {
+    const db = new Database(DB_PATH, { readonly: true });
+    const row = db.prepare("PRAGMA journal_mode").get() as { journal_mode: string };
+    expect(row.journal_mode.toLowerCase()).toBe("delete");
+    db.close();
+  });
+
+  it("PRAGMA integrity_check returns ok", () => {
+    const db = new Database(DB_PATH, { readonly: true });
+    const row = db.prepare("PRAGMA integrity_check").get() as { integrity_check: string };
+    expect(row.integrity_check).toBe("ok");
+    db.close();
+  });
 });
