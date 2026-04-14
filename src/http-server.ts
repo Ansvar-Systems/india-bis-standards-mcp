@@ -38,22 +38,38 @@ const __dirname = dirname(__filename);
 const PORT = parseInt(process.env["PORT"] ?? "9196", 10);
 const SERVER_NAME = "india-bis-standards-mcp";
 
-let pkgVersion = "0.1.0";
-try {
-  const pkg = JSON.parse(
-    readFileSync(join(__dirname, "..", "package.json"), "utf8"),
-  ) as { version: string };
-  pkgVersion = pkg.version;
-} catch {
-  // fallback
+function readFirst(candidates: Array<string | undefined>): string | null {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      return readFileSync(candidate, "utf8");
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
 }
 
-let sourcesYml = "";
-try {
-  sourcesYml = readFileSync(join(__dirname, "..", "sources.yml"), "utf8");
-} catch {
-  // fallback
+let pkgVersion = "0.1.0";
+const pkgRaw = readFirst([
+  join(__dirname, "..", "package.json"),
+  join(__dirname, "..", "..", "package.json"),
+  "package.json",
+]);
+if (pkgRaw) {
+  try {
+    pkgVersion = (JSON.parse(pkgRaw) as { version: string }).version;
+  } catch {
+    // keep fallback
+  }
 }
+
+const sourcesYml =
+  readFirst([
+    join(__dirname, "..", "sources.yml"),
+    join(__dirname, "..", "..", "sources.yml"),
+    "sources.yml",
+  ]) ?? "";
 
 interface CoverageSourceEntry {
   name: string;
@@ -79,11 +95,24 @@ interface CoverageDoc {
 }
 
 let coverageDoc: CoverageDoc | null = null;
-try {
-  const raw = readFileSync(join(__dirname, "..", "data", "coverage.json"), "utf8");
-  coverageDoc = JSON.parse(raw) as CoverageDoc;
-} catch {
-  coverageDoc = null;
+// __dirname is dist/src when running the compiled bundle and src when
+// running with tsx. Try both repo-root candidates plus an explicit env
+// override so freshness reporting works in dev, in tests, and in the
+// Docker image (where data/ sits at /app/data/).
+const COVERAGE_CANDIDATES = [
+  process.env["BIS_COVERAGE_PATH"],
+  join(__dirname, "..", "data", "coverage.json"),
+  join(__dirname, "..", "..", "data", "coverage.json"),
+  "data/coverage.json",
+].filter(Boolean) as string[];
+for (const candidate of COVERAGE_CANDIDATES) {
+  try {
+    const raw = readFileSync(candidate, "utf8");
+    coverageDoc = JSON.parse(raw) as CoverageDoc;
+    break;
+  } catch {
+    // try next candidate
+  }
 }
 
 const FREQUENCY_DAYS: Record<string, number> = {
@@ -322,9 +351,16 @@ const SearchTechnicalArgs = z.object({
 // --- Helpers ------------------------------------------------------------------
 
 function buildMeta(sourceUrl?: string): Record<string, unknown> {
+  // Prefer the date stored in coverage.json so consumers see the actual
+  // last-ingest date, not a static "quarterly" placeholder.
+  let dataAge = "See coverage.json; refresh frequency: quarterly";
+  if (coverageDoc?.generatedAt) {
+    dataAge = coverageDoc.generatedAt.slice(0, 10);
+  }
   return {
     disclaimer: DISCLAIMER,
-    data_age: "See coverage.json; refresh frequency: quarterly",
+    data_age: dataAge,
+    availability: "paid (metadata only — full BIS standards text requires subscription)",
     source_url: sourceUrl ?? SOURCE_URL,
   };
 }
@@ -389,7 +425,14 @@ function createMcpServer(): Server {
               note: "Returns standard metadata only. Full text requires BIS subscription at services.bis.gov.in.",
               _citation: {
                 canonical_ref: control.control_ref,
-                display_text: `BIS — ${control.title} (${control.control_ref})`,
+                display_text: `BIS ${control.control_ref} — ${control.title} (metadata only; full text requires paid BIS subscription)`,
+                aliases: [control.control_ref, control.title.split(" — ")[0] ?? control.control_ref],
+                source_url: SOURCE_URL,
+                availability: "paid",
+                lookup: {
+                  tool: "in_bis_get_standard",
+                  args: { document_id: control.control_ref },
+                },
               },
               _meta: buildMeta(),
             });
@@ -401,7 +444,14 @@ function createMcpServer(): Server {
               ...circular,
               _citation: {
                 canonical_ref: circular.reference,
-                display_text: `BIS/IT Act — ${circular.title} (${circular.reference})`,
+                display_text: `BIS/IT Act ${circular.reference} — ${circular.title}`,
+                aliases: [circular.reference],
+                source_url: circular.pdf_url ?? SOURCE_URL,
+                availability: "public",
+                lookup: {
+                  tool: "in_bis_get_standard",
+                  args: { document_id: circular.reference },
+                },
               },
               _meta: buildMeta(circular.pdf_url ?? SOURCE_URL),
             });
