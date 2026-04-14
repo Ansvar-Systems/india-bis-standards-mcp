@@ -1,0 +1,11 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "in.ansvar/india-bis-standards-mcp",
+  "description": "Query Bureau of Indian Standards (BIS) IS standards catalog metadata for IT and cybersecurity — IS 16700, IS/ISO/IEC 27001 national adoption, IT Act rules",
+  "repository": { "url": "https://github.com/Ansvar-Systems/india-bis-standards-mcp", "source": "github" },
+  "homepage": "https://ansvar.eu",
+  "version": "0.1.0",
+  "license": "BSL-1.1",
+  "keywords": ["bis", "india", "it-standards", "cybersecurity", "data-privacy", "compliance", "mcp", "ansvar"],
+  "packages": [{ "registryType": "npm", "identifier": "@ansvar/india-bis-standards-mcp", "version": "0.1.0", "transport": { "type": "stdio" } }]
+}

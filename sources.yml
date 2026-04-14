@@ -1,0 +1,22 @@
+schema_version: "1.0"
+mcp_name: "India BIS IT Standards MCP"
+category: "regulation"
+
+sources:
+  - name: "BIS IS Standards Catalog"
+    authority: "Bureau of Indian Standards (BIS)"
+    official_portal: "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/"
+    retrieval_method: "HTML_SCRAPE"
+    format: "HTML metadata (full PDF text is paid)"
+    authentication: "none"
+    update_frequency: "quarterly"
+    license:
+      type: "government_terms"
+      url: "https://www.bis.gov.in"
+      summary: "Standards catalog metadata is public; full standards text requires BIS subscription"
+    coverage:
+      scope: "IS 16700 series (Data Privacy); IS/ISO/IEC 27001 national adoption; IS/ISO/IEC 27002; IT Act Section 43A Reasonable Security Practices Rules 2011; IS relevant to IT/cybersecurity"
+      version: "Current catalog"
+      item_count: "~50-100 IS standards (metadata), full text not included"
+    languages:
+      - "en"
