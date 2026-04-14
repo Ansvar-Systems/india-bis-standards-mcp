@@ -19,5 +19,13 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
-      - run: npm run seed
+      # Tests run against the committed BIS catalog database. The seed
+      # script (scripts/seed-sample.ts) is only used as a fallback for
+      # fresh checkouts that don't have data/bis.db — the test suite
+      # expects >=50 rows which seed alone cannot provide.
+      - run: |
+          if [ ! -s data/bis.db ]; then
+            echo "No committed database; seeding sample rows."
+            npm run seed
+          fi
       - run: npm test

@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-04-14T05:44:34.799Z",
+  "generatedAt": "2026-04-14T07:30:02.457Z",
   "mcp": "india-bis-standards-mcp",
   "version": "0.1.0",
   "sources": [
     {
       "name": "Bureau of Indian Standards — Standard Review Portal",
       "url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
-      "last_fetched": "2026-04-14T05:44:34.799Z",
+      "last_fetched": "2026-04-14T07:30:02.457Z",
       "update_frequency": "quarterly",
-      "item_count": 22,
+      "item_count": 142,
       "status": "current"
     }
   ],
   "totals": {
     "frameworks": 3,
-    "controls": 19,
+    "controls": 139,
     "circulars": 0
   }
 }

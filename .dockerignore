@@ -1,0 +1,32 @@
+# Build artefacts and caches
+node_modules
+dist
+npm-debug.log*
+.npm
+.eslintcache
+
+# Dev data — only the committed SQLite db is needed at build time
+data/raw
+data/*.db-shm
+data/*.db-wal
+
+# Playwright binaries — only needed for ingestion, not runtime image
+.playwright-mcp
+playwright-report
+test-results
+
+# Git and editor metadata
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Test outputs
+coverage
+*.log
+
+# Environment and local config
+.env
+.env.*
+!.env.example

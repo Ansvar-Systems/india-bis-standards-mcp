@@ -5,13 +5,36 @@
   "description": "Bureau of Indian Standards (BIS) IS standards catalog for IT and cybersecurity — metadata, ISO equivalents, IT Act rules",
   "type": "module",
   "main": "dist/src/index.js",
-  "bin": { "india-bis-standards-mcp": "dist/src/index.js" },
-  "files": ["dist", "server.json"],
-  "engines": { "node": ">=20" },
-  "repository": { "type": "git", "url": "git+https://github.com/Ansvar-Systems/india-bis-standards-mcp.git" },
-  "bugs": { "url": "https://github.com/Ansvar-Systems/india-bis-standards-mcp/issues" },
+  "bin": {
+    "india-bis-standards-mcp": "dist/src/index.js"
+  },
+  "files": [
+    "dist",
+    "server.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ansvar-Systems/india-bis-standards-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ansvar-Systems/india-bis-standards-mcp/issues"
+  },
   "homepage": "https://github.com/Ansvar-Systems/india-bis-standards-mcp#readme",
-  "keywords": ["mcp", "model-context-protocol", "ai", "claude", "bis", "india", "standards", "it-security", "compliance", "ansvar"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "claude",
+    "bis",
+    "india",
+    "standards",
+    "it-security",
+    "compliance",
+    "ansvar"
+  ],
   "author": "Ansvar Systems AB <hello@ansvar.ai>",
   "license": "BSL-1.1",
   "scripts": {
@@ -34,6 +57,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.13.4",
+    "playwright": "^1.59.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vitest": "^3.0.0"

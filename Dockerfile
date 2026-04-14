@@ -21,12 +21,18 @@ COPY tsconfig.json ./
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 COPY sources.yml ./
+COPY server.json ./
 
 # Build TypeScript
 RUN npm run build
 
-# Seed the sample database so the container works out-of-the-box
-RUN mkdir -p data && node dist/scripts/seed-sample.js
+# Copy the committed BIS catalog database (metadata only — full text is
+# paid and is never fetched at build time). If the committed database is
+# missing for any reason, fall back to the sample seed so the image still
+# boots with something meaningful.
+COPY data/ ./data/
+RUN mkdir -p data && \
+    if [ ! -s data/bis.db ]; then node dist/scripts/seed-sample.js; fi
 
 # Remove dev dependencies
 RUN npm prune --omit=dev
