@@ -1,20 +1,40 @@
 {
-  "generatedAt": "2026-04-14T07:30:02.457Z",
+  "generatedAt": "2026-04-14T10:51:26.599Z",
   "mcp": "india-bis-standards-mcp",
   "version": "0.1.0",
+  "scope_statement": "Catalog metadata for Bureau of Indian Standards (BIS) IS standards in IT, cybersecurity, and data privacy (LITD 17 subcommittee plus ISO/IEC IT-security family adoptions), plus publicly available IT Act rules and CERT-In/RBI/SEBI cybersecurity directives. Full standards text is paid/licensed and is NOT included.",
+  "scope_exclusions": [
+    "Full BIS IS standards text (paid/licensed — purchase from services.bis.gov.in)",
+    "Restricted-distribution IS standards",
+    "Withdrawn standards older than 10 years",
+    "Hindi-only BIS publications",
+    "Draft standards under public comment",
+    "ICS codes for live-scraped rows (the public BIS search API does not expose them)",
+    "BIS standards outside the LITD 17 IT-security scope (alarm systems, power systems, climate change, medical informatics, agriculture, construction, etc. — filtered out by the ingestion gate)"
+  ],
   "sources": [
     {
       "name": "Bureau of Indian Standards — Standard Review Portal",
       "url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
-      "last_fetched": "2026-04-14T07:30:02.457Z",
+      "last_fetched": "2026-04-14T10:51:26.599Z",
       "update_frequency": "quarterly",
-      "item_count": 142,
-      "status": "current"
+      "item_count": 139,
+      "status": "current",
+      "expected_items": 139,
+      "measurement_unit": "IS standard catalog metadata rows",
+      "verification_method": "page_scraped",
+      "last_verified": "2026-04-14",
+      "completeness": "snapshot",
+      "completeness_note": "Scope-gated to the LITD 17 IT/cybersecurity subcommittee and explicit ISO/IEC IT-security-family numbers. Full text not included (paid). Curated seed of 19 known IS standards is merged with the live scrape; live rows take precedence."
     }
   ],
   "totals": {
     "frameworks": 3,
     "controls": 139,
     "circulars": 0
+  },
+  "notes": {
+    "availability": "Every controls row carries availability='paid'. The MCP returns metadata only.",
+    "full_text": "Full BIS IS standards text requires a paid subscription at https://www.services.bis.gov.in/. This server never fetches or redistributes that text."
   }
 }

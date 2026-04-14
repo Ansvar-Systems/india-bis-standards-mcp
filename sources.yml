@@ -3,20 +3,41 @@ mcp_name: "India BIS IT Standards MCP"
 category: "regulation"
 
 sources:
-  - name: "BIS IS Standards Catalog"
+  - name: "BIS IS Standards Catalog (LITD 17 + IT-security families)"
     authority: "Bureau of Indian Standards (BIS)"
     official_portal: "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/"
+    api_endpoint: "https://standardsadmin.bis.gov.in/review-service//searchStandardsByNumberOrTitle"
     retrieval_method: "HTML_SCRAPE"
-    format: "HTML metadata (full PDF text is paid)"
+    fetcher: "Playwright (headless Chromium) re-issuing the public Angular search request"
+    format: "JSON metadata returned by the public search API; no full PDF text fetched"
     authentication: "none"
     update_frequency: "quarterly"
+    expected_items: 139
+    measurement_unit: "IS standard catalog metadata rows"
+    verification_method: "page_scraped"
     license:
       type: "government_terms"
       url: "https://www.bis.gov.in"
-      summary: "Standards catalog metadata is public; full standards text requires BIS subscription"
+      summary: "Standards catalog metadata is public. Full standards text is paid and is NOT fetched or redistributed by this server."
     coverage:
-      scope: "IS 16700 series (Data Privacy); IS/ISO/IEC 27001 national adoption; IS/ISO/IEC 27002; IT Act Section 43A Reasonable Security Practices Rules 2011; IS relevant to IT/cybersecurity"
-      version: "Current catalog"
-      item_count: "~50-100 IS standards (metadata), full text not included"
+      scope: >
+        IS 16700 (Data Privacy); IS/ISO/IEC 27xxx information security family
+        (27001/27002/27005/27017/27018/27032/27035/27037/27040/27043/27701);
+        IS/ISO/IEC 29xxx privacy series (29100/29101/29134/29151);
+        IS/ISO/IEC 15408 Common Criteria; IS/ISO/IEC 11770 key management;
+        IS/ISO/IEC 18033 encryption; IS/ISO/IEC 18014 time-stamping;
+        IS/ISO/IEC 19790/19792/19896/20540/24759 crypto module testing;
+        IS/ISO/IEC 24745/24760 biometric and identity management;
+        IS/ISO/IEC 20000-1 IT service management; IS/ISO/IEC 38500 IT governance;
+        IS 14990 Indian Common Criteria parts; IS 17428 Data Privacy Assurance.
+      version: "Current catalog snapshot (refreshed per ingest run)"
+      item_count: "139 IS standards (metadata only — full text is paid)"
+      availability: "paid (every controls row stamped availability='paid')"
+    exclusions:
+      - "Full BIS IS standards text (paid subscription required)"
+      - "Restricted-distribution IS standards"
+      - "Withdrawn standards older than 10 years"
+      - "BIS rows outside the LITD 17 IT-security scope (filtered at ingestion)"
+      - "ICS codes for live-scraped rows (not exposed by the public search API)"
     languages:
       - "en"

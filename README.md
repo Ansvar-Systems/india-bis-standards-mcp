@@ -72,6 +72,7 @@ docker run -p 9196:9196 ghcr.io/ansvar-systems/india-bis-standards-mcp:latest
 | `in_bis_list_categories` | List all BIS IS standard categories with counts |
 | `in_bis_about` | Server metadata, version, and coverage summary |
 | `in_bis_list_sources` | Data provenance: sources, retrieval method, licensing |
+| `in_bis_check_data_freshness` | Per-source data age, refresh frequency, OK / Due / OVERDUE status |
 
 All tools return standard metadata. Full text requires BIS subscription. See [TOOLS.md](TOOLS.md) for parameters, return formats, and examples.
 

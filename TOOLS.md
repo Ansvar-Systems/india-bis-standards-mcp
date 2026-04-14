@@ -257,6 +257,51 @@ None.
 
 ---
 
+## in_bis_check_data_freshness
+
+Report per-source data age, expected refresh frequency, and staleness status. Reads `data/coverage.json` at runtime — no hardcoded dates. Use to decide whether to trigger an ingestion run.
+
+### Parameters
+
+None.
+
+### Example Call
+
+```json
+{
+  "name": "in_bis_check_data_freshness",
+  "arguments": {}
+}
+```
+
+### Example Response
+
+```json
+{
+  "generated_at": "2026-04-14T10:51:26.599Z",
+  "database_version": "0.1.0",
+  "sources": [
+    {
+      "name": "Bureau of Indian Standards — Standard Review Portal",
+      "last_fetched": "2026-04-14T10:51:26.599Z",
+      "update_frequency": "quarterly",
+      "age_days": 0,
+      "max_age_days": 92,
+      "status": "Current",
+      "item_count": 139
+    }
+  ],
+  "any_stale": false,
+  "refresh_instructions": "To trigger a forced ingestion run: gh workflow run ingest.yml --repo Ansvar-Systems/india-bis-standards-mcp -f force=true",
+  "note": "Freshness is computed from data/coverage.json...",
+  "_meta": { "...": "..." }
+}
+```
+
+Status logic: `Current` (within refresh window), `Due` (within 20% of deadline), `OVERDUE` (past expected refresh date).
+
+---
+
 ## in_bis_list_sources
 
 Return data provenance information: which BIS sources are indexed, retrieval method, update frequency, and licensing terms.

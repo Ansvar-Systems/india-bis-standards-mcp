@@ -55,6 +55,108 @@ try {
   // fallback
 }
 
+interface CoverageSourceEntry {
+  name: string;
+  url: string;
+  last_fetched: string | null;
+  update_frequency: string;
+  item_count: number;
+  status: string;
+  expected_items?: number;
+  measurement_unit?: string;
+  verification_method?: string;
+  last_verified?: string;
+}
+
+interface CoverageDoc {
+  generatedAt: string;
+  mcp: string;
+  version: string;
+  sources: CoverageSourceEntry[];
+  totals: { frameworks: number; controls: number; circulars: number };
+  scope_statement?: string;
+  scope_exclusions?: string[];
+}
+
+let coverageDoc: CoverageDoc | null = null;
+try {
+  const raw = readFileSync(join(__dirname, "..", "data", "coverage.json"), "utf8");
+  coverageDoc = JSON.parse(raw) as CoverageDoc;
+} catch {
+  coverageDoc = null;
+}
+
+const FREQUENCY_DAYS: Record<string, number> = {
+  daily: 1,
+  weekly: 7,
+  monthly: 31,
+  quarterly: 92,
+  annually: 365,
+  annual: 365,
+};
+
+function freshnessReport(): {
+  generated_at: string;
+  database_version: string | null;
+  sources: Array<{
+    name: string;
+    last_fetched: string | null;
+    update_frequency: string;
+    age_days: number | null;
+    max_age_days: number;
+    status: "Current" | "Due" | "OVERDUE" | "Unknown";
+    item_count: number;
+  }>;
+  any_stale: boolean;
+  refresh_instructions: string;
+} {
+  const sources: ReturnType<typeof freshnessReport>["sources"] = [];
+  let anyStale = false;
+  if (coverageDoc) {
+    const now = Date.now();
+    for (const src of coverageDoc.sources) {
+      const maxAgeDays = FREQUENCY_DAYS[src.update_frequency.toLowerCase()] ?? 92;
+      let ageDays: number | null = null;
+      let status: "Current" | "Due" | "OVERDUE" | "Unknown" = "Unknown";
+      if (src.last_fetched) {
+        const t = new Date(src.last_fetched).getTime();
+        if (!Number.isNaN(t)) {
+          ageDays = Math.floor((now - t) / (24 * 60 * 60 * 1000));
+          if (ageDays > maxAgeDays) {
+            status = "OVERDUE";
+            anyStale = true;
+          } else if (ageDays > maxAgeDays * 0.8) {
+            status = "Due";
+          } else {
+            status = "Current";
+          }
+        }
+      } else {
+        status = "OVERDUE";
+        anyStale = true;
+      }
+      sources.push({
+        name: src.name,
+        last_fetched: src.last_fetched,
+        update_frequency: src.update_frequency,
+        age_days: ageDays,
+        max_age_days: maxAgeDays,
+        status,
+        item_count: src.item_count,
+      });
+    }
+  }
+  return {
+    generated_at: coverageDoc?.generatedAt ?? "unknown",
+    database_version: coverageDoc?.version ?? null,
+    sources,
+    any_stale: anyStale,
+    refresh_instructions:
+      "To trigger a forced ingestion run: " +
+      "gh workflow run ingest.yml --repo Ansvar-Systems/india-bis-standards-mcp -f force=true",
+  };
+}
+
 const DISCLAIMER =
   "This data is provided for informational reference only. It does not constitute legal or professional advice. " +
   "Always verify against official BIS publications at https://www.services.bis.gov.in/. " +
@@ -184,6 +286,18 @@ const TOOLS = [
       required: [],
     },
   },
+  {
+    name: "in_bis_check_data_freshness",
+    description:
+      "Report per-source data age, expected refresh frequency, and staleness " +
+      "status by reading data/coverage.json. Returns OK / Due / OVERDUE per " +
+      "source. Use to decide whether to trigger an ingestion run.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
 ];
 
 // --- Zod schemas --------------------------------------------------------------
@@ -236,10 +350,14 @@ function createMcpServer(): Server {
       };
     }
 
-    function errorContent(message: string) {
+    type ErrorType = "NO_MATCH" | "INVALID_INPUT" | "INTERNAL_ERROR";
+
+    function errorContent(message: string, errorType: ErrorType = "INTERNAL_ERROR") {
       return {
         content: [{ type: "text" as const, text: message }],
         isError: true as const,
+        _error_type: errorType,
+        _meta: buildMeta(),
       };
     }
 
@@ -292,6 +410,7 @@ function createMcpServer(): Server {
           return errorContent(
             `No standard or rule found with reference: ${docId}. ` +
               "Use in_bis_search_standards to find available references.",
+            "NO_MATCH",
           );
         }
 
@@ -348,12 +467,30 @@ function createMcpServer(): Server {
           });
         }
 
+        case "in_bis_check_data_freshness": {
+          const report = freshnessReport();
+          return textContent({
+            ...report,
+            note:
+              "Freshness is computed from data/coverage.json. " +
+              "Status: Current = within refresh window, Due = within 20% of deadline, " +
+              "OVERDUE = past expected refresh date.",
+            _meta: buildMeta(),
+          });
+        }
+
         default:
-          return errorContent(`Unknown tool: ${name}`);
+          return errorContent(`Unknown tool: ${name}`, "INVALID_INPUT");
       }
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        return errorContent(
+          `Invalid arguments for ${name}: ${err.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+          "INVALID_INPUT",
+        );
+      }
       const message = err instanceof Error ? err.message : String(err);
-      return errorContent(`Error executing ${name}: ${message}`);
+      return errorContent(`Error executing ${name}: ${message}`, "INTERNAL_ERROR");
     }
   });
 

@@ -7,11 +7,14 @@
  *     a paid/subscription product — no row should ever be marked free).
  *   - Descriptions mention the BIS subscription requirement.
  *   - No PDF artefacts have leaked into data/raw/.
+ *   - The committed database stays in journal_mode=delete.
+ *   - data/coverage.json carries the audit-runner fields required by the
+ *     fleet coverage audit pipeline.
  */
 
 import Database from "better-sqlite3";
 import { describe, it, expect } from "vitest";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 const DB_PATH = process.env["BIS_DB_PATH"] ?? "data/bis.db";
 
@@ -66,5 +69,40 @@ describe("BIS catalog database", () => {
     const row = db.prepare("PRAGMA integrity_check").get() as { integrity_check: string };
     expect(row.integrity_check).toBe("ok");
     db.close();
+  });
+});
+
+describe("coverage manifest", () => {
+  const COVERAGE_PATH = "data/coverage.json";
+
+  it("data/coverage.json exists and is valid JSON", () => {
+    expect(existsSync(COVERAGE_PATH)).toBe(true);
+    expect(() => JSON.parse(readFileSync(COVERAGE_PATH, "utf8"))).not.toThrow();
+  });
+
+  it("carries audit-runner fields required by the fleet coverage pipeline", () => {
+    const cov = JSON.parse(readFileSync(COVERAGE_PATH, "utf8")) as Record<
+      string,
+      unknown
+    >;
+    expect(cov["scope_statement"]).toBeTruthy();
+    expect(Array.isArray(cov["scope_exclusions"])).toBe(true);
+    const sources = cov["sources"] as Array<Record<string, unknown>>;
+    expect(Array.isArray(sources) && sources.length > 0).toBe(true);
+    for (const src of sources) {
+      expect(typeof src["expected_items"]).toBe("number");
+      expect(typeof src["measurement_unit"]).toBe("string");
+      expect(typeof src["verification_method"]).toBe("string");
+      expect(typeof src["last_verified"]).toBe("string");
+    }
+  });
+
+  it("source item_count matches the actual controls row count", () => {
+    const cov = JSON.parse(readFileSync(COVERAGE_PATH, "utf8")) as {
+      sources: Array<{ item_count: number; expected_items: number }>;
+      totals: { controls: number };
+    };
+    expect(cov.sources[0]?.item_count).toBe(cov.totals.controls);
+    expect(cov.sources[0]?.expected_items).toBe(cov.totals.controls);
   });
 });
