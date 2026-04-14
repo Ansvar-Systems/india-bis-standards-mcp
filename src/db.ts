@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS controls (
   title          TEXT    NOT NULL,
   description    TEXT    NOT NULL,
   maturity_level TEXT,
-  priority       TEXT
+  priority       TEXT,
+  availability   TEXT    NOT NULL DEFAULT 'paid'
 );
 
 CREATE INDEX IF NOT EXISTS idx_controls_framework   ON controls(framework_id);
@@ -135,6 +136,7 @@ export interface Control {
   description: string;
   maturity_level: string | null;
   priority: string | null;
+  availability: string;
 }
 
 export interface Circular {

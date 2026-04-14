@@ -1,6 +1,10 @@
 # Coverage — India BIS IT Standards MCP
 
-> Last verified: 2026-04-13 | Database version: 0.1.0
+> Last verified: 2026-04-14 | Database version: 0.1.0
+
+## Coverage Scope: Metadata Only
+
+BIS standards full text requires paid subscription at services.bis.gov.in. This MCP provides ONLY metadata (title, IS number, TC, status, ICS code). For full standards text, purchase from BIS directly.
 
 ## What's Included
 

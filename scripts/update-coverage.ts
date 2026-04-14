@@ -12,7 +12,7 @@ import Database from "better-sqlite3";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
-const DB_PATH = process.env["SAMA_DB_PATH"] ?? "data/sama.db";
+const DB_PATH = process.env["BIS_DB_PATH"] ?? "data/bis.db";
 const COVERAGE_FILE = "data/coverage.json";
 
 interface CoverageFile {
@@ -56,13 +56,13 @@ async function main(): Promise<void> {
 
   const coverage: CoverageFile = {
     generatedAt: new Date().toISOString(),
-    mcp: "saudi-sama-cybersecurity-mcp",
+    mcp: "india-bis-standards-mcp",
     version: "0.1.0",
     sources: [
       {
-        name: "SAMA Rules & Instructions",
-        url: "https://www.sama.gov.sa/en-US/RulesInstructions/Pages/default.aspx",
-        last_fetched: latestCircular?.date ?? null,
+        name: "Bureau of Indian Standards — Standard Review Portal",
+        url: "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
+        last_fetched: new Date().toISOString(),
         update_frequency: "quarterly",
         item_count: frameworks + controls + circulars,
         status: "current",

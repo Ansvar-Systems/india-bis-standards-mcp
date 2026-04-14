@@ -36,7 +36,7 @@ const BASE_URL = "https://www.services.bis.gov.in";
 // Standard review/search portal — publicly accessible catalog metadata
 const PORTAL_URL = `${BASE_URL}/php/BIS_2.0/bisconnect/standard_review/`;
 const RAW_DIR = "data/raw";
-const RATE_LIMIT_MS = 2000;
+const RATE_LIMIT_MS = 5000;
 const MAX_RETRIES = 3;
 const RETRY_BACKOFF_BASE_MS = 2000;
 const REQUEST_TIMEOUT_MS = 60_000;
@@ -179,6 +179,9 @@ async function scrapeCatalog(): Promise<StandardEntry[]> {
     const status = $(cells[4] ?? "").text().trim() || "Current";
 
     if (!isNumber || !title) return;
+    // Real BIS IS standards start with "IS " or "IS/" prefix.
+    // Reject noise rows (e.g., TC listing tables with integer-only first column).
+    if (!/^IS[\s/]/i.test(isNumber)) return;
     if (!isItRelevant(title, tc)) return;
 
     // Detect ISO equivalent from title pattern (e.g., "IS/ISO/IEC 27001")
