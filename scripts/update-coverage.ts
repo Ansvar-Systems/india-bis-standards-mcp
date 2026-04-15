@@ -1,56 +1,22 @@
 /**
  * Update data/coverage.json with current database statistics.
  *
- * Reads the SAMA SQLite database and writes a coverage summary file
- * used by the freshness checker, fleet manifest, and the sa_sama_about tool.
+ * Preserves hand-maintained schema fields (schema_version, mcp_type,
+ * scope_statement, scope_exclusions, per-source metadata for sources 2..N,
+ * notes, completeness, etc.) and only refreshes the dynamic counts +
+ * timestamps for the primary BIS standards source. Runs safely on CI
+ * without clobbering docs.
  *
  * Usage:
  *   npx tsx scripts/update-coverage.ts
  */
 
 import Database from "better-sqlite3";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 const DB_PATH = process.env["BIS_DB_PATH"] ?? "data/bis.db";
 const COVERAGE_FILE = "data/coverage.json";
-
-interface CoverageFile {
-  generatedAt: string;
-  mcp: string;
-  version: string;
-  scope_statement: string;
-  scope_exclusions: string[];
-  sources: CoverageSource[];
-  totals: {
-    frameworks: number;
-    controls: number;
-    circulars: number;
-  };
-  notes: {
-    availability: string;
-    full_text: string;
-  };
-}
-
-interface CoverageSource {
-  name: string;
-  url: string;
-  last_fetched: string | null;
-  update_frequency: string;
-  item_count: number;
-  status: "current" | "stale" | "unknown";
-  expected_items: number;
-  measurement_unit: string;
-  verification_method:
-    | "api_reconciled"
-    | "page_scraped"
-    | "manifest_matched"
-    | "manual_attestation";
-  last_verified: string;
-  completeness: "full" | "partial" | "snapshot";
-  completeness_note: string;
-}
 
 async function main(): Promise<void> {
   if (!existsSync(DB_PATH)) {
@@ -65,74 +31,63 @@ async function main(): Promise<void> {
   const controls = (db.prepare("SELECT COUNT(*) AS n FROM controls").get() as { n: number }).n;
   const circulars = (db.prepare("SELECT COUNT(*) AS n FROM circulars").get() as { n: number }).n;
 
-  // Get last-inserted date if available
-  const latestCircular = db
-    .prepare("SELECT date FROM circulars ORDER BY date DESC LIMIT 1")
-    .get() as { date: string } | undefined;
+  const existing: Record<string, unknown> = existsSync(COVERAGE_FILE)
+    ? JSON.parse(readFileSync(COVERAGE_FILE, "utf8"))
+    : {};
 
-  const today = new Date().toISOString().slice(0, 10);
-  const coverage: CoverageFile = {
-    generatedAt: new Date().toISOString(),
-    mcp: "india-bis-standards-mcp",
-    version: "0.1.0",
-    scope_statement:
-      "Catalog metadata for Bureau of Indian Standards (BIS) IS standards " +
-      "in IT, cybersecurity, and data privacy (LITD 17 subcommittee plus " +
-      "ISO/IEC IT-security family adoptions), plus publicly available IT Act " +
-      "rules and CERT-In/RBI/SEBI cybersecurity directives. Full standards " +
-      "text is paid/licensed and is NOT included.",
-    scope_exclusions: [
-      "Full BIS IS standards text (paid/licensed — purchase from services.bis.gov.in)",
-      "Restricted-distribution IS standards",
-      "Withdrawn standards older than 10 years",
-      "Hindi-only BIS publications",
-      "Draft standards under public comment",
-      "ICS codes for live-scraped rows (the public BIS search API does not expose them)",
-      "BIS standards outside the LITD 17 IT-security scope (alarm systems, " +
-        "power systems, climate change, medical informatics, agriculture, " +
-        "construction, etc. — filtered out by the ingestion gate)",
-    ],
-    sources: [
-      {
-        name: "Bureau of Indian Standards — Standard Review Portal",
-        url: "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
-        last_fetched: new Date().toISOString(),
-        update_frequency: "quarterly",
-        item_count: controls,
-        status: "current",
-        expected_items: controls,
-        measurement_unit: "IS standard catalog metadata rows",
-        verification_method: "page_scraped",
-        last_verified: today,
-        completeness: "snapshot",
-        completeness_note:
-          "Scope-gated to the LITD 17 IT/cybersecurity subcommittee and " +
-          "explicit ISO/IEC IT-security-family numbers. Full text not included " +
-          "(paid). Curated seed of 19 known IS standards is merged with the " +
-          "live scrape; live rows take precedence.",
-      },
-    ],
+  // Only the first source (BIS Standards Portal) tracks the dynamic controls count.
+  // Other sources (IT Act, CERT-In directions, DPDPA) are single-document linkouts
+  // with hand-maintained item_count: 1.
+  const sources =
+    Array.isArray(existing["sources"]) && existing["sources"].length > 0
+      ? (existing["sources"] as Record<string, unknown>[]).map((s, i) =>
+          i === 0
+            ? {
+                ...s,
+                item_count: controls,
+                expected_items:
+                  typeof s["expected_items"] === "number"
+                    ? s["expected_items"]
+                    : controls,
+              }
+            : s,
+        )
+      : [];
+
+  // total_items is sum of all sources' item_count (preserves the hand-authored 1s)
+  const totalItems = sources.reduce((acc, s) => {
+    const n = (s as Record<string, unknown>)["item_count"];
+    return acc + (typeof n === "number" ? n : 0);
+  }, 0);
+
+  const existingSummary =
+    (existing["summary"] as Record<string, unknown> | undefined) ?? {};
+  const summary = {
+    ...existingSummary,
+    total_items: totalItems,
+    total_sources: sources.length,
+  };
+
+  const coverage = {
+    ...existing,
+    sources,
     totals: { frameworks, controls, circulars },
-    notes: {
-      availability:
-        "Every controls row carries availability='paid'. The MCP returns " +
-        "metadata only.",
-      full_text:
-        "Full BIS IS standards text requires a paid subscription at " +
-        "https://www.services.bis.gov.in/. This server never fetches or " +
-        "redistributes that text.",
-    },
+    summary,
+    generatedAt: new Date().toISOString(),
   };
 
   const dir = dirname(COVERAGE_FILE);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
-  writeFileSync(COVERAGE_FILE, JSON.stringify(coverage, null, 2), "utf8");
+  writeFileSync(COVERAGE_FILE, JSON.stringify(coverage, null, 2) + "\n", "utf8");
 
   console.log(`Coverage updated: ${COVERAGE_FILE}`);
   console.log(`  Frameworks : ${frameworks}`);
   console.log(`  Controls   : ${controls}`);
   console.log(`  Circulars  : ${circulars}`);
+  console.log(
+    `  Schema fields preserved: schema_version, mcp_type, scope_exclusions, additional sources, notes`,
+  );
 }
 
 main().catch((err) => {
