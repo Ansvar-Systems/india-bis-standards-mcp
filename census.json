@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "mcp_name": "india-bis-standards-mcp",
+  "mcp_type": "controls_frameworks",
+  "jurisdiction": "IN",
+  "jurisdiction_name": "India",
+  "authority": "Bureau of Indian Standards (BIS)",
+  "portal": "https://www.services.bis.gov.in/",
+  "census_date": "2026-04-14",
+  "agent": "claude-opus-4-6",
+  "summary": {
+    "total_sources": 4,
+    "total_frameworks": 3,
+    "total_standards": 139,
+    "total_rows": 142,
+    "fully_ingested": 139,
+    "metadata_only": 139,
+    "full_text_available": 1,
+    "excluded": 0,
+    "availability_notice": "BIS IS standards are metadata-only (availability='paid'). Full text requires a BIS subscription."
+  },
+  "sources": [
+    {
+      "id": "bis-standards-portal",
+      "name": "Bureau of Indian Standards — Standard Review Portal",
+      "portal_url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
+      "retrieval_method": "html_search_scope_gated",
+      "update_frequency": "quarterly",
+      "item_type": "is_standards_metadata",
+      "document_count": 139,
+      "expected_items": 139,
+      "last_scraped": "2026-04-14",
+      "ingested_count": 139,
+      "completeness": "metadata_only_snapshot"
+    },
+    {
+      "id": "it-act-43a-spdi-rules-2011",
+      "name": "IT Act Section 43A SPDI Rules 2011",
+      "portal_url": "https://meity.gov.in/writereaddata/files/GSR313E_10511(1).pdf",
+      "retrieval_method": "pdf_fetch",
+      "update_frequency": "ad_hoc",
+      "item_type": "rule_text",
+      "document_count": 1,
+      "expected_items": 1,
+      "last_scraped": "2026-04-14",
+      "ingested_count": 1,
+      "completeness": "full"
+    },
+    {
+      "id": "cert-in-directions-2022",
+      "name": "CERT-In Directions 2022",
+      "portal_url": "https://www.cert-in.org.in/",
+      "retrieval_method": "html_fetch",
+      "update_frequency": "ad_hoc",
+      "item_type": "directives",
+      "document_count": 1,
+      "expected_items": 1,
+      "last_scraped": "2026-04-14",
+      "ingested_count": 1,
+      "completeness": "full"
+    },
+    {
+      "id": "dpdpa-2023",
+      "name": "Digital Personal Data Protection Act 2023",
+      "portal_url": "https://meity.gov.in/",
+      "retrieval_method": "reference_only",
+      "update_frequency": "ad_hoc",
+      "item_type": "statute_linkout",
+      "document_count": 1,
+      "expected_items": 1,
+      "last_scraped": "2026-04-14",
+      "ingested_count": 0,
+      "completeness": "reference_only"
+    }
+  ],
+  "frameworks": [
+    {
+      "id": "bis-infosec",
+      "name": "BIS Information Security Standards",
+      "standards_count": 95
+    },
+    {
+      "id": "bis-data-privacy",
+      "name": "BIS Data Privacy Standards",
+      "standards_count": 37
+    },
+    {
+      "id": "bis-it-governance",
+      "name": "BIS IT Governance Standards",
+      "standards_count": 7
+    }
+  ],
+  "highlighted_standards": [
+    "IS 16700:2018 — Data Privacy (national standard)",
+    "IS/ISO/IEC 27001 — ISMS requirements (national adoption)",
+    "IS/ISO/IEC 27002 — Information security controls",
+    "IS/ISO/IEC 27701 — Privacy information management system",
+    "IS/ISO/IEC 27005 — Information security risk management",
+    "IS/ISO/IEC 27017 — Cloud security controls",
+    "IS/ISO/IEC 27018 — Cloud PII protection",
+    "IS/ISO/IEC 27032 — Cybersecurity guidelines",
+    "IS/ISO/IEC 27035 — Incident management",
+    "IS/ISO/IEC 29100 — Privacy framework",
+    "IS/ISO/IEC 29134 — Privacy impact assessment"
+  ],
+  "exclusions": [
+    "Full BIS IS standards text (paid/licensed; purchase via services.bis.gov.in)",
+    "Restricted-distribution IS standards",
+    "Withdrawn standards older than 10 years",
+    "Hindi-only BIS publications",
+    "Draft standards under public comment",
+    "ICS codes on live-scraped rows (not exposed by BIS search API)",
+    "BIS standards outside LITD 17 IT-security scope (alarm systems, power, climate, medical informatics, agriculture, construction, etc.)"
+  ]
+}

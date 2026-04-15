@@ -1,37 +1,91 @@
 {
-  "generatedAt": "2026-04-14T10:51:26.599Z",
+  "schema_version": "1.0",
+  "generatedAt": "2026-04-14T21:00:00.000Z",
   "mcp": "india-bis-standards-mcp",
+  "mcp_type": "controls_frameworks",
   "version": "0.1.0",
-  "scope_statement": "Catalog metadata for Bureau of Indian Standards (BIS) IS standards in IT, cybersecurity, and data privacy (LITD 17 subcommittee plus ISO/IEC IT-security family adoptions), plus publicly available IT Act rules and CERT-In/RBI/SEBI cybersecurity directives. Full standards text is paid/licensed and is NOT included.",
+  "scope_statement": "Catalog metadata for Bureau of Indian Standards (BIS) IS standards in IT, cybersecurity, and data privacy (LITD 17 subcommittee plus ISO/IEC IT-security family adoptions), plus publicly available IT Act rules and CERT-In / DPDPA references. Full standards text is paid/licensed and is NOT included.",
   "scope_exclusions": [
-    "Full BIS IS standards text (paid/licensed — purchase from services.bis.gov.in)",
+    "Full BIS IS standards text (paid/licensed - purchase from services.bis.gov.in)",
     "Restricted-distribution IS standards",
     "Withdrawn standards older than 10 years",
     "Hindi-only BIS publications",
     "Draft standards under public comment",
     "ICS codes for live-scraped rows (the public BIS search API does not expose them)",
-    "BIS standards outside the LITD 17 IT-security scope (alarm systems, power systems, climate change, medical informatics, agriculture, construction, etc. — filtered out by the ingestion gate)"
+    "BIS standards outside the LITD 17 IT-security scope (alarm systems, power systems, climate change, medical informatics, agriculture, construction, etc. - filtered out by the ingestion gate)"
   ],
   "sources": [
     {
-      "name": "Bureau of Indian Standards — Standard Review Portal",
+      "id": "bis-standards-portal",
+      "name": "Bureau of Indian Standards - Standard Review Portal",
+      "authority": "Bureau of Indian Standards",
       "url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/standard_review/",
-      "last_fetched": "2026-04-14T10:51:26.599Z",
+      "last_fetched": "2026-04-14",
+      "last_verified": "2026-04-14",
       "update_frequency": "quarterly",
       "item_count": 139,
-      "status": "current",
       "expected_items": 139,
       "measurement_unit": "IS standard catalog metadata rows",
       "verification_method": "page_scraped",
-      "last_verified": "2026-04-14",
       "completeness": "snapshot",
+      "status": "current",
       "completeness_note": "Scope-gated to the LITD 17 IT/cybersecurity subcommittee and explicit ISO/IEC IT-security-family numbers. Full text not included (paid). Curated seed of 19 known IS standards is merged with the live scrape; live rows take precedence."
+    },
+    {
+      "id": "it-act-43a-spdi-rules-2011",
+      "name": "IT Act Section 43A SPDI Rules 2011",
+      "authority": "Ministry of Electronics and Information Technology (MeitY)",
+      "url": "https://meity.gov.in/writereaddata/files/GSR313E_10511(1).pdf",
+      "last_fetched": "2026-04-14",
+      "last_verified": "2026-04-14",
+      "update_frequency": "ad-hoc",
+      "item_count": 1,
+      "expected_items": 1,
+      "measurement_unit": "rule_text",
+      "verification_method": "manual_attestation",
+      "completeness": "full",
+      "status": "current"
+    },
+    {
+      "id": "cert-in-directions-2022",
+      "name": "CERT-In Directions 2022",
+      "authority": "Indian Computer Emergency Response Team (CERT-In)",
+      "url": "https://www.cert-in.org.in/",
+      "last_fetched": "2026-04-14",
+      "last_verified": "2026-04-14",
+      "update_frequency": "ad-hoc",
+      "item_count": 1,
+      "expected_items": 1,
+      "measurement_unit": "directive_text",
+      "verification_method": "manual_attestation",
+      "completeness": "full",
+      "status": "current"
+    },
+    {
+      "id": "dpdpa-2023",
+      "name": "Digital Personal Data Protection Act 2023",
+      "authority": "Ministry of Electronics and Information Technology (MeitY)",
+      "url": "https://meity.gov.in/",
+      "last_fetched": "2026-04-14",
+      "last_verified": "2026-04-14",
+      "update_frequency": "ad-hoc",
+      "item_count": 1,
+      "expected_items": 1,
+      "measurement_unit": "statute_linkout",
+      "verification_method": "manual_attestation",
+      "completeness": "partial",
+      "status": "current",
+      "completeness_note": "Linkout / reference only; full act text lives in the MeitY portal."
     }
   ],
   "totals": {
     "frameworks": 3,
     "controls": 139,
     "circulars": 0
+  },
+  "summary": {
+    "total_items": 142,
+    "total_sources": 4
   },
   "notes": {
     "availability": "Every controls row carries availability='paid'. The MCP returns metadata only.",
